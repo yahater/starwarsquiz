@@ -491,6 +491,125 @@
     #finalTitle { font-size: 2rem; }
     .hud-logo { font-size: 0.65rem; }
   }
+
+  /* ── Leaderboard & Name Input ── */
+  .name-input-section {
+    margin: 0 auto 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    animation: fadeSlideIn 0.5s ease;
+  }
+
+  .name-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: rgba(0,191,255,0.7);
+    text-transform: uppercase;
+  }
+
+  .name-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  #nameInput {
+    background: rgba(0,15,30,0.9);
+    border: 1px solid rgba(0,191,255,0.4);
+    color: #fff;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem;
+    padding: 12px 18px;
+    outline: none;
+    width: 220px;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    transition: border-color 0.2s;
+  }
+  #nameInput:focus { border-color: rgba(0,191,255,0.9); }
+  #nameInput::placeholder { color: rgba(255,255,255,0.25); }
+
+  #submitNameBtn {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    padding: 12px 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  #submitNameBtn:hover { background: var(--gold); color: #000; }
+  #submitNameBtn:disabled { opacity: 0.4; cursor: default; }
+
+  .submit-status {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.85rem;
+    min-height: 1.2em;
+    color: rgba(0,255,136,0.8);
+  }
+  .submit-status.error { color: rgba(255,34,0,0.8); }
+
+  /* Leaderboard table */
+  #leaderboardSection {
+    margin: 0 auto 30px;
+    width: 100%;
+    max-width: 500px;
+    animation: fadeSlideIn 0.5s ease;
+  }
+
+  .lb-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 5px;
+    color: rgba(255,232,31,0.5);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  .lb-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .lb-table th {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 3px;
+    color: rgba(0,191,255,0.5);
+    text-transform: uppercase;
+    padding: 6px 10px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0,191,255,0.15);
+  }
+
+  .lb-table td {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.75);
+  }
+
+  .lb-table tr.lb-me td { color: var(--gold); }
+
+  .lb-rank { color: rgba(0,191,255,0.6) !important; font-family: 'Orbitron', monospace; font-size: 0.75rem !important; }
+  .lb-score-cell { color: var(--gold) !important; font-family: 'Orbitron', monospace !important; }
+  .lb-loading {
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: rgba(0,191,255,0.4);
+    padding: 20px;
+  }
 </style>
 </head>
 <body>
@@ -560,6 +679,23 @@
     <div class="rank-stars" id="rankStars"></div>
     <div class="end-divider"></div>
     <div id="finalScore"></div>
+
+    <!-- Name input -->
+    <div class="name-input-section" id="nameSection">
+      <div class="name-label">Trage dich in die Rangliste ein</div>
+      <div class="name-row">
+        <input type="text" id="nameInput" placeholder="Dein Name" maxlength="20" />
+        <button id="submitNameBtn" onclick="submitScore()">Eintragen</button>
+      </div>
+      <div class="submit-status" id="submitStatus"></div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboardSection">
+      <div class="lb-title">— Galaktische Rangliste —</div>
+      <div id="leaderboardBody"><div class="lb-loading">Lade Rangliste...</div></div>
+    </div>
+
     <button id="restartBtn" onclick="restart()">Nochmal spielen</button>
   </div>
 </div>
@@ -685,6 +821,19 @@ const questionDB = [
   {q:"Wer tötet Satine?",a:["Maul","Obi-Wan","Dooku","Vader"],c:0},
   {q:"Wie heißt die Spezies von Jar Jar?",a:["Gungan","Rodian","Toydarian","Kaminoan"],c:0},
   {q:"Wie heißt Watto Spezies?",a:["Toydarian","Rodian","Hutt","Twi'lek"],c:0},
+
+  {q:"Welche Spezies ist Jabba?",a:["Hutt","Gamorreaner","Trandoshan","Nikto"],c:0},
+  {q:"Wer ist Jabbas Tänzerin?",a:["Oola","Leia","Ayla","Lyn"],c:0},
+  {q:"Wie heißt Boba Fetts Schiff?",a:["Slave I","Razor Crest","Ghost","Falcon"],c:0},
+  {q:"Wie heißt Jango Fetts Sohn?",a:["Boba","Cade","Rex","Fenn"],c:0},
+  {q:"Wer ist Captain Rex?",a:["Klon","Jedi","Sith","Schmuggler"],c:0},
+  {q:"Wie heißt Anakins Sternjäger Typ?",a:["Eta-2","X-Wing","A-Wing","Y-Wing"],c:0},
+  {q:"Wie heißt Luke's Fighter?",a:["X-Wing","A-Wing","TIE","B-Wing"],c:0},
+  {q:"Wie heißen Imperiale Jäger?",a:["TIE Fighter","ARC","Z95","V-Wing"],c:0},
+  {q:"Wie heißt Palpatines Sith Name?",a:["Darth Sidious","Darth Tyranus","Darth Bane","Darth Nihilus"],c:0},
+  {q:"Wie heißt Dookus Sith Name?",a:["Darth Tyranus","Darth Plagueis","Darth Revan","Darth Malak"],c:0},
+  {q:"Wie heißt der Mond von Endor offiziell?",a:["Endor II","Forest Moon of Endor","Sanctuary Moon","Dxun"],c:2},
+  
   {q:"Wie lautet der echte Name von Count Dooku?",a:["Dooku Tyranus","Dooku Serenno","Tyranus Valorum","Dooku Corvin"],c:1},
   {q:"Welcher Schauspieler spielte den Kopfgeldjäger Dengar in Episode V?",a:["Jeremy Bulloch","Alan Harris","Morris Bush","Mark Austin"],c:2},
   {q:"Wie heißt der Heimatplanet von Grand Admiral Thrawn?",a:["Csilla","Chiss Prime","Ilum","Mygeeto"],c:0},
@@ -714,17 +863,6 @@ const questionDB = [
   {q:"Wer baut C-3PO ursprünglich?",a:["Anakin Skywalker","Watto","Padmé","Bail Organa"],c:0},
   {q:"Wie heißt das Wurmmonster im Asteroiden in Episode V?",a:["Exogorth","Sarlacc","Krayt","Mynock"],c:0},
   {q:"Welcher Planet ist Lando Calrissians Stadt?",a:["Bespin","Ord Mantell","Nal Hutta","Batuu"],c:0},
-  
-  {q:"Welche Spezies ist Jabba?",a:["Hutt","Gamorreaner","Trandoshan","Nikto"],c:0},
-  {q:"Wer ist Jabbas Tänzerin?",a:["Oola","Leia","Ayla","Lyn"],c:0},
-  {q:"Wie heißt Boba Fetts Schiff?",a:["Slave I","Razor Crest","Ghost","Falcon"],c:0},
-  {q:"Wie heißt Jango Fetts Sohn?",a:["Boba","Cade","Rex","Fenn"],c:0},
-  {q:"Wer ist Captain Rex?",a:["Klon","Jedi","Sith","Schmuggler"],c:0},
-  {q:"Wie heißt Anakins Sternjäger Typ?",a:["Eta-2","X-Wing","A-Wing","Y-Wing"],c:0},
-  {q:"Wie heißt Luke's Fighter?",a:["X-Wing","A-Wing","TIE","B-Wing"],c:0},
-  {q:"Wie heißen Imperiale Jäger?",a:["TIE Fighter","ARC","Z95","V-Wing"],c:0},
-  {q:"Wie heißt Palpatines Sith Name?",a:["Darth Sidious","Darth Tyranus","Darth Bane","Darth Nihilus"],c:0},
-  {q:"Wie heißt Dookus Sith Name?",a:["Darth Tyranus","Darth Plagueis","Darth Revan","Darth Malak"],c:0},
 
   {q:"Wer tötet Count Dooku?",a:["Anakin","Obi-Wan","Yoda","Palpatine"],c:0},
   {q:"Wie heißt der Planet der Clones Ausbildung?",a:["Kamino","Geonosis","Saleucami","Mygeeto"],c:0},
@@ -739,12 +877,13 @@ const questionDB = [
 ];
 
 // ─── Game State ───────────────────────────────────────────────
-let questions = [], current = 0, score = 0;
-const totalQuestions = 20;
+let questions = [], current = 0, score = 0, crawlTimeout = null;
+const totalQuestions = 10;
 
 function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
 
 function startGame(){
+  clearTimeout(crawlTimeout);
   document.getElementById('intro').style.display='none';
   document.getElementById('app').style.display='block';
   questions = shuffle(questionDB).slice(0, totalQuestions);
@@ -819,6 +958,9 @@ function showEndScreen(){
   else if(percent >= 0.75){ title = "Jedi Master"; stars = 3; }
   else if(percent >= 0.5){ title = "Jedi Knight"; stars = 2; }
 
+  currentPlayerScore = score;
+  currentPlayerTitle = title;
+
   document.getElementById('finalTitle').textContent = title;
   document.getElementById('finalScore').textContent = `Du hast ${score} von ${totalQuestions} Fragen richtig beantwortet.`;
 
@@ -830,12 +972,128 @@ function showEndScreen(){
     s.className = 'rank-star' + (i < stars ? ' lit' : '');
     starsEl.appendChild(s);
   }
+
+  // Load leaderboard
+  fetchLeaderboard().then(entries => renderLeaderboard(entries, null));
 }
 
 function restart(){ location.reload(); }
 
+// ─── GitHub Leaderboard ──────────────────────────────────────
+// !! Fill in your details here !!
+const GH_TOKEN  = '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';   // Fine-grained PAT: Contents read+write
+const GH_OWNER  = 'yahater';
+const GH_REPO   = 'starwarsquiz';
+const GH_FILE   = 'leaderboard.json';    // Path to file in repo root
+
+const GH_API    = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+const GH_RAW    = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/main/${GH_FILE}`;
+
+let currentPlayerName = '';
+let currentPlayerScore = 0;
+
+async function fetchLeaderboard(){
+  try {
+    const res = await fetch(GH_RAW + '?t=' + Date.now()); // bust cache
+    if(!res.ok) return [];
+    return await res.json();
+  } catch(e){ return []; }
+}
+
+function renderLeaderboard(entries, highlightName){
+  const sorted = [...entries].sort((a,b) => b.score - a.score).slice(0, 10);
+  const container = document.getElementById('leaderboardBody');
+
+  if(!sorted.length){
+    container.innerHTML = '<div class="lb-loading">Noch keine Einträge.</div>';
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  let html = `<table class="lb-table">
+    <thead><tr>
+      <th>#</th><th>Name</th><th>Rang</th><th>Punkte</th>
+    </tr></thead><tbody>`;
+
+  sorted.forEach((e, i) => {
+    const isMe = e.name === highlightName && e.score === currentPlayerScore;
+    html += `<tr class="${isMe ? 'lb-me' : ''}">
+      <td class="lb-rank">${medals[i] || (i+1)}</td>
+      <td>${escapeHtml(e.name)}</td>
+      <td>${e.title}</td>
+      <td class="lb-score-cell">${e.score}/${totalQuestions}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function submitScore(){
+  const nameInput = document.getElementById('nameInput');
+  const btn       = document.getElementById('submitNameBtn');
+  const status    = document.getElementById('submitStatus');
+  const name      = nameInput.value.trim();
+
+  if(!name){ status.textContent = 'Bitte gib einen Namen ein.'; status.className='submit-status error'; return; }
+
+  btn.disabled = true;
+  status.textContent = 'Wird gespeichert...';
+  status.className = 'submit-status';
+  currentPlayerName = name;
+
+  try {
+    // 1. Get current file (need SHA for update)
+    const metaRes = await fetch(GH_API, {
+      headers: { Authorization: `Bearer ${GH_TOKEN}`, Accept: 'application/vnd.github+json' }
+    });
+
+    let entries = [], sha = null;
+    if(metaRes.ok){
+      const meta = await metaRes.json();
+      sha = meta.sha;
+      try { entries = JSON.parse(atob(meta.content.replace(/\n/g,''))); } catch(e){}
+    }
+
+    // 2. Add new entry
+    entries.push({ name, score: currentPlayerScore, title: currentPlayerTitle, date: new Date().toISOString().slice(0,10) });
+
+    // 3. Commit updated file
+    const body = { message: `score: ${name} (${currentPlayerScore}/${totalQuestions})`,
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(entries, null, 2)))) };
+    if(sha) body.sha = sha;
+
+    const putRes = await fetch(GH_API, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${GH_TOKEN}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if(!putRes.ok) throw new Error('GitHub API error: ' + putRes.status);
+
+    status.textContent = '✓ Eingetragen!';
+    document.getElementById('nameSection').style.opacity = '0.4';
+    btn.disabled = true;
+    nameInput.disabled = true;
+
+    renderLeaderboard(entries, name);
+
+  } catch(e){
+    status.textContent = 'Fehler beim Speichern. Prüfe Token & Repo.';
+    status.className = 'submit-status error';
+    btn.disabled = false;
+    console.error(e);
+  }
+}
+
+let currentPlayerTitle = 'Padawan';
+
 // Auto-start after crawl
-setTimeout(startGame, 6000);
+crawlTimeout = setTimeout(startGame, 6000);
 </script>
 </body>
 </html>
