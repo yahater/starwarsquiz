@@ -2,17 +2,25 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Star Wars Pub Quiz</title>
 <style>
-body{font-family:Arial,Helvetica,sans-serif;background:#0b0b0f;color:white;padding:40px}
-.question{margin-bottom:25px;padding:20px;border-radius:10px;background:#15151d}
-.answers button{display:block;margin:6px 0;padding:10px;border:none;border-radius:6px;background:#2a2a35;color:white;cursor:pointer;width:100%;text-align:left}
+body{font-family:Arial,Helvetica,sans-serif;background:#0b0b0f;color:white;margin:0;padding:20px}
+h1{text-align:center}
+#score{position:sticky;top:0;background:#0b0b0f;padding:10px 0;margin-bottom:15px;font-size:18px;text-align:center;border-bottom:1px solid #333}
+.question{margin-bottom:20px;padding:18px;border-radius:10px;background:#15151d}
+.question h3{font-size:18px;margin-top:0}
+.answers button{display:block;margin:8px 0;padding:14px;border:none;border-radius:8px;background:#2a2a35;color:white;cursor:pointer;width:100%;text-align:left;font-size:16px}
 .answers button.correct{background:#2e7d32}
 .answers button.wrong{background:#c62828}
+@media (min-width:700px){
+body{max-width:700px;margin:auto}
+}
 </style>
 </head>
 <body>
 <h1>Star Wars Pub Quiz (Schwer)</h1>
+<div id="score">Score: 0 / 0</div>
 <div id="quiz"></div>
 
 <script>
@@ -49,7 +57,20 @@ const questions=[
 {q:"Welcher Planet ist Lando Calrissians Stadt?",a:["Bespin","Ord Mantell","Nal Hutta","Batuu"],c:0}
 ];
 
+let score=0;
+let answered=0;
+
+function shuffle(array){
+for(let i=array.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
+}
+
+shuffle(questions);
+
 const quiz=document.getElementById('quiz');
+const scoreEl=document.getElementById('score');
 
 questions.forEach((item,i)=>{
 const div=document.createElement('div');
@@ -65,19 +86,28 @@ answers.className='answers';
 item.a.forEach((text,index)=>{
 const btn=document.createElement('button');
 btn.textContent=text;
+
 btn.onclick=()=>{
 const buttons=answers.querySelectorAll('button');
 buttons.forEach(b=>b.disabled=true);
 
+answered++;
+
 if(index===item.c){
 btn.classList.add('correct');
+score++;
 }else{
 btn.classList.add('wrong');
 buttons[item.c].classList.add('correct');
 }
+
+scoreEl.textContent=`Score: ${score} / ${answered}`;
 };
+
 answers.appendChild(btn);
 });
+
+shuffle(item.a);
 
 div.appendChild(answers);
 quiz.appendChild(div);
