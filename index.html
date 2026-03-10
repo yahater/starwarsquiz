@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Star Wars Pub Quiz</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#0b0b0f;color:white;padding:40px}
+.question{margin-bottom:25px;padding:20px;border-radius:10px;background:#15151d}
+.answers button{display:block;margin:6px 0;padding:10px;border:none;border-radius:6px;background:#2a2a35;color:white;cursor:pointer;width:100%;text-align:left}
+.answers button.correct{background:#2e7d32}
+.answers button.wrong{background:#c62828}
+</style>
+</head>
+<body>
+<h1>Star Wars Pub Quiz (Schwer)</h1>
+<div id="quiz"></div>
+
+<script>
+const questions=[
+{q:"Wie heißt der Mond von Endor offiziell?",a:["Endor II","Forest Moon of Endor","Sanctuary Moon","Dxun"],c:2},
+{q:"Wie lautet der echte Name von Count Dooku?",a:["Dooku Tyranus","Dooku Serenno","Tyranus Valorum","Dooku Corvin"],c:1},
+{q:"Welcher Schauspieler spielte den Kopfgeldjäger Dengar in Episode V?",a:["Jeremy Bulloch","Alan Harris","Morris Bush","Mark Austin"],c:2},
+{q:"Wie heißt der Heimatplanet von Grand Admiral Thrawn?",a:["Csilla","Chiss Prime","Ilum","Mygeeto"],c:0},
+{q:"Welche Spezies ist Admiral Ackbar?",a:["Quarren","Mon Calamari","Nautolan","Aqualish"],c:1},
+{q:"Welcher Planet wurde von der Starkiller Base zerstört?",a:["Hosnian Prime","Chandrila","Corellia","Kuat"],c:0},
+{q:"Wie heißt die Bar von Maz Kanata?",a:["Maz Castle","Kanata Cantina","Takodana Lodge","Maz's Castle"],c:3},
+{q:"Welches Tier reitet Luke auf Hoth?",a:["Bantha","Tauntaun","Dewback","Wampa"],c:1},
+{q:"Wie lautet der Code des Gefangenen, den Leia in Episode IV vorgibt?",a:["TK-421","AA-23","BH-1138","TK-1138"],c:3},
+{q:"Wer löschte die Jedi-Archive laut Jocasta Nu angeblich nicht?",a:["Ein Jedi","Ein Droide","Niemand","Ein Padawan"],c:0},
+{q:"Welcher Planet ist die Heimat der Klon-Armee?",a:["Kamino","Geonosis","Saleucami","Umbara"],c:0},
+{q:"Wie heißt der Kommandant des Todessterns in Episode IV?",a:["Tarkin","Tagge","Piett","Jerjerrod"],c:0},
+{q:"Wie viele Systeme umfasst der Mid Rim ungefähr laut Kanon?",a:["100","1000","10.000","50.000"],c:2},
+{q:"Welche Farbe hat Mace Windus Lichtschwert?",a:["Blau","Grün","Lila","Gelb"],c:2},
+{q:"Welches Droidenmodell ist K-2SO?",a:["IG-Serie","KX-Serie","BX-Serie","HK-Serie"],c:1},
+{q:"Wer trainierte Qui-Gon Jinn?",a:["Dooku","Yoda","Windu","Kenobi"],c:0},
+{q:"Wie heißt Boba Fetts Schiff?",a:["Slave I","Razor Crest","Hound's Tooth","Firespray"],c:0},
+{q:"Auf welchem Planeten wurde Order 66 an Ki-Adi-Mundi vollstreckt?",a:["Felucia","Mygeeto","Cato Neimoidia","Utapau"],c:1},
+{q:"Welche Spezies ist Jar Jar Binks?",a:["Gungan","Toydarian","Nautolan","Rodian"],c:0},
+{q:"Wie heißt der Planet aus dem Obi-Wan gegen Anakin Finale?",a:["Mustafar","Sullust","Ryloth","Malachor"],c:0},
+{q:"Wer war der erste Offizier, der Darth Vader in Episode V direkt widerspricht?",a:["Piett","Ozzel","Needa","Veers"],c:1},
+{q:"Wie heißt Chewbaccas Heimatplanet?",a:["Kashyyyk","Trandosha","Endor","Bothawui"],c:0},
+{q:"Welche Organisation baute den ersten Todesstern laut Rogue One?",a:["Imperial Engineering Corps","Imperial Department of Military Research","Advanced Weapons Division","Imperial Science Bureau"],c:1},
+{q:"Wie heißt der Kristall in einem Lichtschwert?",a:["Kyber","Ilum","Kessel","Nova"],c:0},
+{q:"Wer war der Pilot von Red Five vor Luke?",a:["Biggs Darklighter","Wedge Antilles","Garven Dreis","Jek Porkins"],c:2},
+{q:"Welcher Planet ist bekannt für Gewürzabbau?",a:["Kessel","Naboo","Corellia","Dantooine"],c:0},
+{q:"Wie heißt der Sith-Name von Palpatine?",a:["Darth Tenebrous","Darth Plagueis","Darth Sidious","Darth Bane"],c:2},
+{q:"Wer baut C-3PO ursprünglich?",a:["Anakin Skywalker","Watto","Padmé","Bail Organa"],c:0},
+{q:"Wie heißt das Wurmmonster im Asteroiden in Episode V?",a:["Exogorth","Sarlacc","Krayt","Mynock"],c:0},
+{q:"Welcher Planet ist Lando Calrissians Stadt?",a:["Bespin","Ord Mantell","Nal Hutta","Batuu"],c:0}
+];
+
+const quiz=document.getElementById('quiz');
+
+questions.forEach((item,i)=>{
+const div=document.createElement('div');
+div.className='question';
+
+const q=document.createElement('h3');
+q.textContent=(i+1)+'. '+item.q;
+div.appendChild(q);
+
+const answers=document.createElement('div');
+answers.className='answers';
+
+item.a.forEach((text,index)=>{
+const btn=document.createElement('button');
+btn.textContent=text;
+btn.onclick=()=>{
+const buttons=answers.querySelectorAll('button');
+buttons.forEach(b=>b.disabled=true);
+
+if(index===item.c){
+btn.classList.add('correct');
+}else{
+btn.classList.add('wrong');
+buttons[item.c].classList.add('correct');
+}
+};
+answers.appendChild(btn);
+});
+
+div.appendChild(answers);
+quiz.appendChild(div);
+});
+</script>
+</body>
+</html>
