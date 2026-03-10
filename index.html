@@ -3,115 +3,810 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Star Wars Pub Quiz</title>
+<title>Star Wars Trivia</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-body{font-family:Arial,Helvetica,sans-serif;background:#0b0b0f;color:white;margin:0;padding:20px}
-h1{text-align:center}
-#score{position:sticky;top:0;background:#0b0b0f;padding:10px 0;margin-bottom:15px;font-size:18px;text-align:center;border-bottom:1px solid #333}
-.question{margin-bottom:20px;padding:18px;border-radius:10px;background:#15151d}
-.question h3{font-size:18px;margin-top:0}
-.answers button{display:block;margin:8px 0;padding:14px;border:none;border-radius:8px;background:#2a2a35;color:white;cursor:pointer;width:100%;text-align:left;font-size:16px}
-.answers button.correct{background:#2e7d32}
-.answers button.wrong{background:#c62828}
-@media (min-width:700px){
-body{max-width:700px;margin:auto}
-}
+  :root {
+    --gold: #FFE81F;
+    --red: #FF2200;
+    --blue: #00BFFF;
+    --dark: #050A0F;
+    --panel: rgba(0,20,40,0.85);
+    --border: rgba(0,191,255,0.3);
+    --correct: #00FF88;
+    --wrong: #FF2200;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark);
+    color: #fff;
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Starfield */
+  #stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Scanlines overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Crawl intro */
+  #intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .crawl-perspective {
+    perspective: 300px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .crawl-content {
+    position: absolute;
+    bottom: -100%;
+    width: 60%;
+    text-align: center;
+    transform-origin: bottom center;
+    transform: rotateX(25deg);
+    animation: crawl 8s linear forwards;
+    animation-delay: 0.5s;
+  }
+
+  @keyframes crawl {
+    0%   { bottom: -100%; }
+    100% { bottom: 200%; }
+  }
+
+  .crawl-episode {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    letter-spacing: 6px;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  .crawl-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1.2;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+
+  .crawl-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #ddd;
+    margin-bottom: 1.5rem;
+  }
+
+  #skipBtn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    padding: 8px 16px;
+    cursor: pointer;
+    z-index: 110;
+    transition: all 0.2s;
+  }
+  #skipBtn:hover { background: var(--gold); color: #000; }
+
+  /* Main layout */
+  #app {
+    display: none;
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* HUD top bar */
+  #hud {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(0,5,15,0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    margin-bottom: 30px;
+  }
+
+  .hud-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .hud-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .hud-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 3px;
+    color: rgba(255,232,31,0.5);
+    text-transform: uppercase;
+  }
+
+  #scoreDisplay {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(255,232,31,0.8), 0 0 40px rgba(255,232,31,0.4);
+    transition: all 0.3s;
+  }
+
+  #scoreDisplay.pulse {
+    animation: scorePulse 0.4s ease;
+  }
+
+  @keyframes scorePulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.3); text-shadow: 0 0 30px rgba(0,255,136,1); color: var(--correct); }
+    100% { transform: scale(1); }
+  }
+
+  .hud-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: rgba(0,191,255,0.8);
+  }
+
+  .progress-bar-outer {
+    width: 120px;
+    height: 4px;
+    background: rgba(0,191,255,0.15);
+    border: 1px solid rgba(0,191,255,0.3);
+    overflow: hidden;
+  }
+
+  #progressBar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--gold));
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px var(--blue);
+  }
+
+  /* Game area */
+  #game {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .question-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 36px 40px;
+    position: relative;
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    margin-bottom: 24px;
+    animation: fadeSlideIn 0.4s ease;
+  }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,191,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .q-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: rgba(0,191,255,0.6);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .q-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255,255,255,0.3);
+  }
+
+  /* Answer grid */
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 30px;
+  }
+
+  .answer-btn {
+    background: rgba(0,15,30,0.8);
+    border: 1px solid rgba(0,191,255,0.25);
+    color: #ccc;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 18px 20px;
+    cursor: pointer;
+    text-align: left;
+    position: relative;
+    transition: all 0.2s;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .answer-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,191,255,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .answer-letter {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    font-weight: 900;
+    color: var(--blue);
+    min-width: 20px;
+  }
+
+  .answer-btn:hover:not(:disabled) {
+    border-color: rgba(0,191,255,0.7);
+    background: rgba(0,30,60,0.9);
+    color: #fff;
+    transform: translateX(4px);
+    box-shadow: -3px 0 0 var(--blue), inset 0 0 20px rgba(0,191,255,0.05);
+  }
+
+  .answer-btn.correct {
+    border-color: var(--correct) !important;
+    background: rgba(0,255,136,0.12) !important;
+    color: var(--correct) !important;
+    box-shadow: 0 0 20px rgba(0,255,136,0.3), inset 0 0 20px rgba(0,255,136,0.05);
+  }
+  .answer-btn.correct .answer-letter { color: var(--correct); }
+
+  .answer-btn.wrong {
+    border-color: var(--wrong) !important;
+    background: rgba(255,34,0,0.12) !important;
+    color: var(--wrong) !important;
+    box-shadow: 0 0 20px rgba(255,34,0,0.3), inset 0 0 20px rgba(255,34,0,0.05);
+  }
+  .answer-btn.wrong .answer-letter { color: var(--wrong); }
+
+  .answer-btn:disabled { cursor: default; transform: none !important; }
+
+  /* Next btn */
+  #nextBtn {
+    display: none;
+    margin: 0 auto;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 14px 40px;
+    cursor: pointer;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition: all 0.2s;
+    animation: fadeSlideIn 0.3s ease;
+  }
+
+  #nextBtn:hover {
+    background: var(--gold);
+    color: #000;
+    box-shadow: 0 0 30px rgba(255,232,31,0.5);
+  }
+
+  /* End screen */
+  #endScreen {
+    display: none;
+    max-width: 600px;
+    margin: 60px auto;
+    text-align: center;
+    animation: fadeSlideIn 0.6s ease;
+  }
+
+  .end-emblem {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 30px;
+    position: relative;
+  }
+
+  .end-emblem svg {
+    width: 100%;
+    height: 100%;
+    animation: spinSlow 20s linear infinite;
+    filter: drop-shadow(0 0 15px rgba(255,232,31,0.6));
+  }
+
+  @keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .end-rank-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 5px;
+    color: rgba(255,232,31,0.5);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  #finalTitle {
+    font-family: 'Orbitron', monospace;
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(255,232,31,0.8), 0 0 60px rgba(255,232,31,0.3);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .end-divider {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 20px auto;
+  }
+
+  #finalScore {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+
+  #restartBtn {
+    background: transparent;
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 16px 50px;
+    cursor: pointer;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition: all 0.2s;
+  }
+
+  #restartBtn:hover {
+    background: var(--blue);
+    color: #000;
+    box-shadow: 0 0 30px rgba(0,191,255,0.5);
+  }
+
+  /* Stars dots for rank */
+  .rank-stars {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .rank-star {
+    width: 10px;
+    height: 10px;
+    background: var(--gold);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    opacity: 0.3;
+  }
+  .rank-star.lit {
+    opacity: 1;
+    box-shadow: 0 0 10px var(--gold);
+    filter: drop-shadow(0 0 4px var(--gold));
+  }
+
+  /* Lightsaber divider */
+  .saber-divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), var(--gold), var(--blue), transparent);
+    margin: 0 auto 30px;
+    max-width: 400px;
+    box-shadow: 0 0 10px rgba(0,191,255,0.5);
+    animation: saberFlicker 3s ease-in-out infinite;
+  }
+
+  @keyframes saberFlicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  @media (max-width: 560px) {
+    .answers-grid { grid-template-columns: 1fr; }
+    .question-card { padding: 24px 20px; }
+    .q-text { font-size: 1rem; }
+    #finalTitle { font-size: 2rem; }
+    .hud-logo { font-size: 0.65rem; }
+  }
 </style>
 </head>
 <body>
-<h1>Star Wars Pub Quiz (Schwer)</h1>
-<div id="score">Score: 0 / 0</div>
-<div id="quiz"></div>
+
+<canvas id="stars"></canvas>
+
+<!-- Intro Crawl -->
+<div id="intro">
+  <div class="crawl-perspective">
+    <div class="crawl-content">
+      <div class="crawl-episode">Episode I</div>
+      <div class="crawl-title">Das Trivia<br>Erwacht</div>
+      <p class="crawl-text">
+        Eine lange Zeit ist vergangen, seit die Galaxie von dunklen Mächten erschüttert wurde...
+      </p>
+      <p class="crawl-text">
+        Nun liegt es an dir, dein Wissen über die Macht zu beweisen. 20 Fragen stehen zwischen dir und dem Titel eines Jedi-Meisters.
+      </p>
+      <p class="crawl-text">
+        Möge die Macht mit dir sein, Padawan.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app">
+  <div id="hud">
+    <div class="hud-logo">⚡ SW Trivia</div>
+    <div class="hud-center">
+      <div class="hud-label">Punkte</div>
+      <div id="scoreDisplay">0</div>
+    </div>
+    <div class="hud-progress">
+      <span id="qCounter">0/20</span>
+      <div class="progress-bar-outer">
+        <div id="progressBar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game">
+    <div class="question-card">
+      <div class="q-number" id="qNumber">Frage 1 von 20</div>
+      <div class="q-text" id="qText"></div>
+    </div>
+    <div class="saber-divider"></div>
+    <div class="answers-grid" id="answersGrid"></div>
+    <button id="nextBtn" onclick="nextQuestion()">Nächste Frage ›</button>
+  </div>
+
+  <div id="endScreen">
+    <div class="end-emblem">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" stroke="#FFE81F" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <circle cx="50" cy="50" r="35" stroke="#FFE81F" stroke-width="0.75" opacity="0.5"/>
+        <path d="M50 5 L53 20 L50 15 L47 20 Z" fill="#FFE81F"/>
+        <path d="M50 95 L53 80 L50 85 L47 80 Z" fill="#FFE81F"/>
+        <path d="M5 50 L20 47 L15 50 L20 53 Z" fill="#FFE81F"/>
+        <path d="M95 50 L80 47 L85 50 L80 53 Z" fill="#FFE81F"/>
+        <circle cx="50" cy="50" r="8" fill="#FFE81F" opacity="0.9"/>
+        <circle cx="50" cy="50" r="4" fill="#050A0F"/>
+      </svg>
+    </div>
+    <div class="end-rank-label">Dein Rang</div>
+    <div id="finalTitle">Padawan</div>
+    <div class="rank-stars" id="rankStars"></div>
+    <div class="end-divider"></div>
+    <div id="finalScore"></div>
+    <button id="restartBtn" onclick="restart()">Nochmal spielen</button>
+  </div>
+</div>
 
 <script>
-const questions=[
-{q:"Wie heißt der Mond von Endor offiziell?",a:["Endor II","Forest Moon of Endor","Sanctuary Moon","Dxun"],c:2},
-{q:"Wie lautet der echte Name von Count Dooku?",a:["Dooku Tyranus","Dooku Serenno","Tyranus Valorum","Dooku Corvin"],c:1},
-{q:"Welcher Schauspieler spielte den Kopfgeldjäger Dengar in Episode V?",a:["Jeremy Bulloch","Alan Harris","Morris Bush","Mark Austin"],c:2},
-{q:"Wie heißt der Heimatplanet von Grand Admiral Thrawn?",a:["Csilla","Chiss Prime","Ilum","Mygeeto"],c:0},
-{q:"Welche Spezies ist Admiral Ackbar?",a:["Quarren","Mon Calamari","Nautolan","Aqualish"],c:1},
-{q:"Welcher Planet wurde von der Starkiller Base zerstört?",a:["Hosnian Prime","Chandrila","Corellia","Kuat"],c:0},
-{q:"Wie heißt die Bar von Maz Kanata?",a:["Maz Castle","Kanata Cantina","Takodana Lodge","Maz's Castle"],c:3},
-{q:"Welches Tier reitet Luke auf Hoth?",a:["Bantha","Tauntaun","Dewback","Wampa"],c:1},
-{q:"Wie lautet der Code des Gefangenen, den Leia in Episode IV vorgibt?",a:["TK-421","AA-23","BH-1138","TK-1138"],c:3},
-{q:"Wer löschte die Jedi-Archive laut Jocasta Nu angeblich nicht?",a:["Ein Jedi","Ein Droide","Niemand","Ein Padawan"],c:0},
-{q:"Welcher Planet ist die Heimat der Klon-Armee?",a:["Kamino","Geonosis","Saleucami","Umbara"],c:0},
-{q:"Wie heißt der Kommandant des Todessterns in Episode IV?",a:["Tarkin","Tagge","Piett","Jerjerrod"],c:0},
-{q:"Wie viele Systeme umfasst der Mid Rim ungefähr laut Kanon?",a:["100","1000","10.000","50.000"],c:2},
-{q:"Welche Farbe hat Mace Windus Lichtschwert?",a:["Blau","Grün","Lila","Gelb"],c:2},
-{q:"Welches Droidenmodell ist K-2SO?",a:["IG-Serie","KX-Serie","BX-Serie","HK-Serie"],c:1},
-{q:"Wer trainierte Qui-Gon Jinn?",a:["Dooku","Yoda","Windu","Kenobi"],c:0},
-{q:"Wie heißt Boba Fetts Schiff?",a:["Slave I","Razor Crest","Hound's Tooth","Firespray"],c:0},
-{q:"Auf welchem Planeten wurde Order 66 an Ki-Adi-Mundi vollstreckt?",a:["Felucia","Mygeeto","Cato Neimoidia","Utapau"],c:1},
-{q:"Welche Spezies ist Jar Jar Binks?",a:["Gungan","Toydarian","Nautolan","Rodian"],c:0},
-{q:"Wie heißt der Planet aus dem Obi-Wan gegen Anakin Finale?",a:["Mustafar","Sullust","Ryloth","Malachor"],c:0},
-{q:"Wer war der erste Offizier, der Darth Vader in Episode V direkt widerspricht?",a:["Piett","Ozzel","Needa","Veers"],c:1},
-{q:"Wie heißt Chewbaccas Heimatplanet?",a:["Kashyyyk","Trandosha","Endor","Bothawui"],c:0},
-{q:"Welche Organisation baute den ersten Todesstern laut Rogue One?",a:["Imperial Engineering Corps","Imperial Department of Military Research","Advanced Weapons Division","Imperial Science Bureau"],c:1},
-{q:"Wie heißt der Kristall in einem Lichtschwert?",a:["Kyber","Ilum","Kessel","Nova"],c:0},
-{q:"Wer war der Pilot von Red Five vor Luke?",a:["Biggs Darklighter","Wedge Antilles","Garven Dreis","Jek Porkins"],c:2},
-{q:"Welcher Planet ist bekannt für Gewürzabbau?",a:["Kessel","Naboo","Corellia","Dantooine"],c:0},
-{q:"Wie heißt der Sith-Name von Palpatine?",a:["Darth Tenebrous","Darth Plagueis","Darth Sidious","Darth Bane"],c:2},
-{q:"Wer baut C-3PO ursprünglich?",a:["Anakin Skywalker","Watto","Padmé","Bail Organa"],c:0},
-{q:"Wie heißt das Wurmmonster im Asteroiden in Episode V?",a:["Exogorth","Sarlacc","Krayt","Mynock"],c:0},
-{q:"Welcher Planet ist Lando Calrissians Stadt?",a:["Bespin","Ord Mantell","Nal Hutta","Batuu"],c:0}
+// ─── Starfield ───────────────────────────────────────────────
+(function(){
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [];
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  function init(){
+    stars = [];
+    for(let i=0;i<200;i++){
+      stars.push({x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.5+0.2, o:Math.random(), speed:Math.random()*0.3+0.05});
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      s.o += (Math.random()-0.5)*0.03;
+      s.o = Math.max(0.1, Math.min(1, s.o));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${s.o})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize', ()=>{ resize(); init(); });
+  resize(); init(); draw();
+})();
+
+// ─── Question Database ───────────────────────────────────────
+const questionDB = [
+  {q:"Wie heißt Lukes Heimatplanet?",a:["Tatooine","Naboo","Hoth","Endor"],c:0},
+  {q:"Welche Farbe hat Mace Windus Lichtschwert?",a:["Blau","Grün","Lila","Gelb"],c:2},
+  {q:"Wer ist der Vater von Luke Skywalker?",a:["Obi-Wan Kenobi","Darth Vader","Yoda","Palpatine"],c:1},
+  {q:"Wie lautet der vollständige Name von R2-D2s Begleiter?",a:["C-3PX","C-3PO","K-3PO","L-3PO"],c:1},
+  {q:"Auf welchem Planeten lebt Yoda im Exil?",a:["Coruscant","Tatooine","Dagobah","Endor"],c:2},
+  {q:"Welches Raumschiff pilotiert Han Solo?",a:["X-Wing","TIE Fighter","Millennium Falcon","Star Destroyer"],c:2},
+  {q:"Wie heißt Darth Vaders ursprünglicher Name?",a:["Anakin Skywalker","Ben Solo","Qui-Gon Jinn","Mace Windu"],c:0},
+  {q:"Was ist die Macht (The Force)?",a:["Eine Waffe","Eine Energie, die alles verbindet","Ein Raumschiff","Ein Planet"],c:1},
+  {q:"Welche Farbe hat Lukes erstes Lichtschwert?",a:["Blau","Grün","Rot","Lila"],c:0},
+  {q:"Wer spricht den berühmten Satz: 'Ich bin dein Vater'?",a:["Yoda","Obi-Wan","Darth Vader","Palpatine"],c:2},
+  {q:"Wie heißt der Anführer der Rebellion?",a:["Prinzessin Leia","Han Solo","Luke Skywalker","Mon Mothma"],c:0},
+  {q:"Welcher Planet wird im ersten Film durch den Todesstern zerstört?",a:["Alderaan","Naboo","Coruscant","Mandalore"],c:0},
+  {q:"Wie heißt Chewbaccas Spezies?",a:["Ewok","Gungan","Wookiee","Twi'lek"],c:2},
+  {q:"In welchem Film erscheint Jabba the Hutt zum ersten Mal physisch?",a:["Episode IV","Episode V","Episode VI","Episode I"],c:2},
+  {q:"Welches Tier reitet Luke auf dem Planeten Hoth?",a:["Bantha","Tauntaun","Rancor","Wampa"],c:1},
+  {q:"Wie lautet der Orden der Hüter der Macht?",a:["Sith","Jedi","Mandalorianer","Graue"],c:1},
+  {q:"Was ist der Name von Darth Vaders Sternenzerstörer?",a:["Death Star","Executor","Devastator","Chimaera"],c:1},
+  {q:"Welcher Planet ist die Heimatwelt der Ewoks?",a:["Endor (Mond)","Naboo","Tatooine","Mustafar"],c:0},
+  {q:"Wer tötet Han Solo?",a:["Darth Vader","Kylo Ren","Captain Phasma","Snoke"],c:1},
+  {q:"Wie heißt Obi-Wan Kenobis Meister?",a:["Yoda","Mace Windu","Qui-Gon Jinn","Count Dooku"],c:2},
+  {q:"Was ist BB-8?",a:["Ein Astromechdroide","Ein Protokolldroide","Ein Kampfdroide","Ein Medizindroide"],c:0},
+  {q:"Auf welchem Planeten findet der finale Kampf in Rogue One statt?",a:["Scarif","Jedha","Eadu","Mustafar"],c:0},
+  {q:"Wie heißt der Mandalorier in der gleichnamigen Serie?",a:["Din Djarin","Bo-Katan","Paz Vizsla","Boba Fett"],c:0},
+  {q:"Welche Waffe benutzen Stormtrooper?",a:["Blasenpistole","E-11 Blaster","DL-44","DC-15"],c:1},
+  {q:"Wie heißt der erste Todesstern-Direktor?",a:["Grand Moff Tarkin","Darth Vader","Admiral Ozzel","General Veers"],c:0},
+  {q:"Welche Farbe haben Sith-Schwerter?",a:["Rot","Blau","Grün","Gelb"],c:0},
+  {q:"Wie heißt Luke Skywalkers Heimatplanet?",a:["Tatooine","Naboo","Alderaan","Corellia"],c:0},
+  {q:"Wer ist Lukes Vater?",a:["Obi-Wan Kenobi","Darth Vader","Yoda","Han Solo"],c:1},
+  {q:"Wie heißt der Astromech-Droide von Anakin und Luke?",a:["C-3PO","R2-D2","BB-8","K-2SO"],c:1},
+  {q:"Wer schmuggelt Luke und Obi-Wan nach Alderaan?",a:["Lando Calrissian","Han Solo","Boba Fett","Wedge Antilles"],c:1},
+  {q:"Wie heißt das Schiff von Han Solo?",a:["Ghost","Millennium Falcon","Razor Crest","Slave I"],c:1},
+  {q:"Welche Spezies ist Chewbacca?",a:["Ewok","Wookiee","Rodian","Mon Calamari"],c:1},
+  {q:"Wie heißt der Imperator?",a:["Palpatine","Tarkin","Thrawn","Snoke"],c:0},
+  {q:"Wie heißt Darth Vaders echter Name?",a:["Anakin Skywalker","Ben Solo","Revan","Galen Marek"],c:0},
+  {q:"Welche Organisation bewacht Frieden und Gerechtigkeit?",a:["Die Sith","Die Jedi","Die Hutts","Die Mandalorianer"],c:1},
+
+  {q:"Wie heißt der Planet der Wookiees?",a:["Kashyyyk","Endor","Kamino","Mustafar"],c:0},
+  {q:"Wer trainiert Luke auf Dagobah?",a:["Obi-Wan","Yoda","Mace Windu","Qui-Gon"],c:1},
+  {q:"Wie heißt der Kopfgeldjäger mit Mandalorianer-Rüstung im Original?",a:["Jango Fett","Boba Fett","Din Djarin","Bo-Katan"],c:1},
+  {q:"Wie heißt Lukes Schwester?",a:["Padmé","Leia","Jyn","Rey"],c:1},
+  {q:"Wer zerstört den ersten Todesstern?",a:["Han Solo","Luke Skywalker","Wedge Antilles","Lando"],c:1},
+  {q:"Welcher Planet wird vom Todesstern zerstört?",a:["Alderaan","Hoth","Naboo","Coruscant"],c:0},
+  {q:"Wie heißt der Eisplanet in Episode V?",a:["Ilum","Hoth","Jedha","Dantooine"],c:1},
+  {q:"Wie heißt Darth Vaders Flaggschiff?",a:["Executor","Devastator","Chimaera","Supremacy"],c:0},
+  {q:"Wie heißt der Planet der Klonarmee?",a:["Kamino","Geonosis","Felucia","Utapau"],c:0},
+  {q:"Wer erschafft die Klonarmee?",a:["Dooku","Sifo-Dyas","Palpatine","Jango"],c:1},
+
+  {q:"Wer spielt Anakin in Episode III?",a:["Hayden Christensen","Ewan McGregor","Mark Hamill","Adam Driver"],c:0},
+  {q:"Wie heißt Anakins Mutter?",a:["Padmé","Shmi","Leia","Beru"],c:1},
+  {q:"Wer ist Anakins Padawan in The Clone Wars?",a:["Ahsoka Tano","Barriss Offee","Rey","Sabine Wren"],c:0},
+  {q:"Wie heißt der Planet der Gungans?",a:["Naboo","Corellia","Onderon","Ryloth"],c:0},
+  {q:"Wer ist der Sith-Meister von Darth Maul?",a:["Palpatine","Dooku","Plagueis","Vader"],c:0},
+  {q:"Welche Waffe benutzt Darth Maul?",a:["Doppelklingen-Lichtschwert","Axt","Blaster","Speer"],c:0},
+  {q:"Wie heißt der Jedi-Rat-Saal Planet?",a:["Coruscant","Naboo","Kashyyyk","Utapau"],c:0},
+  {q:"Wer ist der Meister von Obi-Wan?",a:["Yoda","Qui-Gon Jinn","Windu","Dooku"],c:1},
+  {q:"Wie heißt der Planet mit Lava aus Episode III?",a:["Mustafar","Jedha","Ilum","Exegol"],c:0},
+  {q:"Wer besiegt Darth Maul in Episode I?",a:["Qui-Gon","Obi-Wan","Anakin","Yoda"],c:1},
+
+  {q:"Wie heißt die Hauptstadt der Republik?",a:["Coruscant","Alderaan","Corellia","Naboo"],c:0},
+  {q:"Wer führt die Separatisten an?",a:["Darth Sidious","Count Dooku","Grievous","Nute Gunray"],c:1},
+  {q:"Wie heißt General Grievous Spezies?",a:["Kaleesh","Zabrak","Chiss","Trandoshan"],c:0},
+  {q:"Welche Droiden kämpfen für die Separatisten?",a:["B1 Battle Droids","Stormtrooper","Dark Trooper","KX Droid"],c:0},
+  {q:"Wie heißen die Elite-Klone von Palpatine?",a:["ARC Trooper","Praetorian Guard","Royal Guard","Death Trooper"],c:2},
+  {q:"Welche Farbe hat Mace Windus Lichtschwert?",a:["Blau","Grün","Lila","Gelb"],c:2},
+  {q:"Wer tötet Mace Windu?",a:["Anakin","Palpatine","Dooku","Vader"],c:1},
+  {q:"Wie heißt der Wüstenplanet von Boba Fett Serie?",a:["Tatooine","Jakku","Geonosis","Jedha"],c:0},
+  {q:"Wie heißt Reys Planet?",a:["Jakku","Tatooine","Corellia","Endor"],c:0},
+  {q:"Wie heißt Kylo Rens echter Name?",a:["Ben Solo","Jacen Solo","Cade Skywalker","Anakin Solo"],c:0},
+
+  {q:"Wer ist Kylo Rens Vater?",a:["Luke","Han Solo","Lando","Wedge"],c:1},
+  {q:"Wie heißt die Widerstands-Generalin?",a:["Leia Organa","Holdo","Jyn Erso","Mon Mothma"],c:0},
+  {q:"Wie heißt der Planet mit der Starkiller Base?",a:["Ilum","Exegol","Crait","Jedha"],c:0},
+  {q:"Wer baut den Todesstern?",a:["Geonosianer","Hutts","Bothaner","Chiss"],c:0},
+  {q:"Wie heißt der Planet mit der roten Salzoberfläche?",a:["Crait","Hoth","Ilum","Jedha"],c:0},
+  {q:"Wie heißt das Schiff von Din Djarin ursprünglich?",a:["Razor Crest","Falcon","Ghost","Slave I"],c:0},
+  {q:"Wie heißt das Kind von Yodas Spezies in Mandalorian?",a:["Grogu","Yaddle","Minch","Oteg"],c:0},
+  {q:"Wie heißt die Rebellenbasis in Rogue One?",a:["Yavin 4","Hoth","Endor","Dantooine"],c:0},
+  {q:"Wer stiehlt die Todesstern-Pläne?",a:["Jyn Erso","Leia","Cassian","Bodhi"],c:0},
+  {q:"Wie heißt der Pilot von Rogue One?",a:["Bodhi Rook","Poe Dameron","Wedge","Biggs"],c:0},
+
+  {q:"Wie heißt der Imperiale Wissenschaftler in Rogue One?",a:["Galen Erso","Krennic","Tarkin","Hux"],c:0},
+  {q:"Wer ist Director Krennic?",a:["Todesstern Leiter","Jedi","Rebell","Schmuggler"],c:0},
+  {q:"Wie heißt der Planet Jedha?",a:["Heilige Jedi Welt","Hutt Planet","Klon Planet","Imperial Hauptstadt"],c:0},
+  {q:"Welche Kreatur lebt auf Endor?",a:["Ewoks","Jawas","Tusken","Wookiees"],c:0},
+  {q:"Wer führt die Ewoks?",a:["Wicket","Logray","Chirpa","Paploo"],c:2},
+  {q:"Wie heißt die Mandalorianische Hauptstadt?",a:["Sundari","Keldabe","Concordia","Krownest"],c:0},
+  {q:"Wer ist Mandalore in Clone Wars?",a:["Duchess Satine","Bo-Katan","Ursa","Sabine"],c:0},
+  {q:"Wer tötet Satine?",a:["Maul","Obi-Wan","Dooku","Vader"],c:0},
+  {q:"Wie heißt die Spezies von Jar Jar?",a:["Gungan","Rodian","Toydarian","Kaminoan"],c:0},
+  {q:"Wie heißt Watto Spezies?",a:["Toydarian","Rodian","Hutt","Twi'lek"],c:0},
+
+  {q:"Welche Spezies ist Jabba?",a:["Hutt","Gamorreaner","Trandoshan","Nikto"],c:0},
+  {q:"Wer ist Jabbas Tänzerin?",a:["Oola","Leia","Ayla","Lyn"],c:0},
+  {q:"Wie heißt Boba Fetts Schiff?",a:["Slave I","Razor Crest","Ghost","Falcon"],c:0},
+  {q:"Wie heißt Jango Fetts Sohn?",a:["Boba","Cade","Rex","Fenn"],c:0},
+  {q:"Wer ist Captain Rex?",a:["Klon","Jedi","Sith","Schmuggler"],c:0},
+  {q:"Wie heißt Anakins Sternjäger Typ?",a:["Eta-2","X-Wing","A-Wing","Y-Wing"],c:0},
+  {q:"Wie heißt Luke's Fighter?",a:["X-Wing","A-Wing","TIE","B-Wing"],c:0},
+  {q:"Wie heißen Imperiale Jäger?",a:["TIE Fighter","ARC","Z95","V-Wing"],c:0},
+  {q:"Wie heißt Palpatines Sith Name?",a:["Darth Sidious","Darth Tyranus","Darth Bane","Darth Nihilus"],c:0},
+  {q:"Wie heißt Dookus Sith Name?",a:["Darth Tyranus","Darth Plagueis","Darth Revan","Darth Malak"],c:0},
+
+  {q:"Wer tötet Count Dooku?",a:["Anakin","Obi-Wan","Yoda","Palpatine"],c:0},
+  {q:"Wie heißt der Planet der Clones Ausbildung?",a:["Kamino","Geonosis","Saleucami","Mygeeto"],c:0},
+  {q:"Wie heißt die Republik Armee?",a:["Grand Army of the Republic","Stormtroopers","Imperial Navy","First Order"],c:0},
+  {q:"Was sind Midi-Chlorianer?",a:["Machtorganismen","Droiden","Kristalle","Alienart"],c:0},
+  {q:"Welcher Kristall fokussiert Lichtschwerter?",a:["Kyber","Kaiburr","Ilum","Barab"],c:0},
+  {q:"Wo finden Jedi oft Kyber Kristalle?",a:["Ilum","Mustafar","Endor","Naboo"],c:0},
+  {q:"Wer gründet die Rebellion?",a:["Mon Mothma","Leia","Bail Organa","Saw Gerrera"],c:0},
+  {q:"Wie heißt Leia’s Vater?",a:["Bail Organa","Han Solo","Tarkin","Palpatine"],c:0},
+  {q:"Wie heißt der Planet Alderaan?",a:["Leias Heimat","Jedi Tempel","Sith Welt","Klon Planet"],c:0},
+  {q:"Wer zerstört den zweiten Todesstern?",a:["Lando Calrissian","Han Solo","Luke","Wedge"],c:0}
 ];
 
-let score=0;
-let answered=0;
+// ─── Game State ───────────────────────────────────────────────
+let questions = [], current = 0, score = 0;
+const totalQuestions = 20;
 
-function shuffle(array){
-for(let i=array.length-1;i>0;i--){
-const j=Math.floor(Math.random()*(i+1));
-[array[i],array[j]]=[array[j],array[i]];
-}
-}
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
 
-shuffle(questions);
-
-const quiz=document.getElementById('quiz');
-const scoreEl=document.getElementById('score');
-
-questions.forEach((item,i)=>{
-const div=document.createElement('div');
-div.className='question';
-
-const q=document.createElement('h3');
-q.textContent=(i+1)+'. '+item.q;
-div.appendChild(q);
-
-const answers=document.createElement('div');
-answers.className='answers';
-
-item.a.forEach((text,index)=>{
-const btn=document.createElement('button');
-btn.textContent=text;
-
-btn.onclick=()=>{
-const buttons=answers.querySelectorAll('button');
-buttons.forEach(b=>b.disabled=true);
-
-answered++;
-
-if(index===item.c){
-btn.classList.add('correct');
-score++;
-}else{
-btn.classList.add('wrong');
-buttons[item.c].classList.add('correct');
+function startGame(){
+  document.getElementById('intro').style.display='none';
+  document.getElementById('app').style.display='block';
+  questions = shuffle(questionDB).slice(0, totalQuestions);
+  loadQuestion();
 }
 
-scoreEl.textContent=`Score: ${score} / ${answered}`;
-};
+function loadQuestion(){
+  const q = questions[current];
+  document.getElementById('qNumber').textContent = `Frage ${current+1} von ${totalQuestions}`;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('qCounter').textContent = `${current}/${totalQuestions}`;
+  document.getElementById('progressBar').style.width = `${(current/totalQuestions)*100}%`;
+  document.getElementById('nextBtn').style.display = 'none';
 
-answers.appendChild(btn);
-});
+  const grid = document.getElementById('answersGrid');
+  grid.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.a.forEach((ans, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.innerHTML = `<span class="answer-letter">${letters[i]}</span>${ans}`;
+    btn.onclick = () => selectAnswer(i, q.c);
+    grid.appendChild(btn);
+  });
+}
 
-shuffle(item.a);
+function selectAnswer(chosen, correct){
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
 
-div.appendChild(answers);
-quiz.appendChild(div);
-});
+  btns[correct].classList.add('correct');
+  if(chosen !== correct){
+    btns[chosen].classList.add('wrong');
+  } else {
+    score++;
+    const sd = document.getElementById('scoreDisplay');
+    sd.textContent = score;
+    sd.classList.remove('pulse');
+    void sd.offsetWidth;
+    sd.classList.add('pulse');
+  }
+
+  document.getElementById('nextBtn').style.display = 'block';
+  if(current === totalQuestions - 1){
+    document.getElementById('nextBtn').textContent = 'Ergebnis ansehen ›';
+  }
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= totalQuestions){
+    showEndScreen();
+  } else {
+    loadQuestion();
+  }
+}
+
+function showEndScreen(){
+  document.getElementById('game').style.display='none';
+  const end = document.getElementById('endScreen');
+  end.style.display = 'block';
+
+  // Progress bar full
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('qCounter').textContent = `${totalQuestions}/${totalQuestions}`;
+  document.getElementById('scoreDisplay').textContent = score;
+
+  const percent = score / totalQuestions;
+  let title = "Padawan";
+  let stars = 1;
+  if(percent >= 0.9){ title = "Sith Lord"; stars = 4; }
+  else if(percent >= 0.75){ title = "Jedi Master"; stars = 3; }
+  else if(percent >= 0.5){ title = "Jedi Knight"; stars = 2; }
+
+  document.getElementById('finalTitle').textContent = title;
+  document.getElementById('finalScore').textContent = `Du hast ${score} von ${totalQuestions} Fragen richtig beantwortet.`;
+
+  // Stars
+  const starsEl = document.getElementById('rankStars');
+  starsEl.innerHTML = '';
+  for(let i=0;i<4;i++){
+    const s = document.createElement('div');
+    s.className = 'rank-star' + (i < stars ? ' lit' : '');
+    starsEl.appendChild(s);
+  }
+}
+
+function restart(){ location.reload(); }
+
+// Auto-start after crawl
+setTimeout(startGame, 6000);
 </script>
 </body>
 </html>
