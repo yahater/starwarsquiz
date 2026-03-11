@@ -80,7 +80,7 @@
       <div class="name-label">Trage dich in die Rangliste ein</div>
       <div class="name-row">
         <input type="text" id="nameInput" placeholder="Dein Name" maxlength="20" />
-        <button id="submitNameBtn" onclick="submitScore()">Eintragen</button>
+        <button id="submitNameBtn">Eintragen</button>
       </div>
       <div class="submit-status" id="submitStatus"></div>
     </div>
@@ -91,7 +91,7 @@
       <div id="leaderboardBody"><div class="lb-loading">Lade Rangliste...</div></div>
     </div>
 
-    <button id="restartBtn" onclick="restart()">Nochmal spielen</button>
+    <button id="restartBtn">Nochmal spielen</button>
   </div>
 </div>
 
@@ -231,6 +231,7 @@ function showEndScreen(){
 }
 
 function restart(){ location.reload(); }
+document.getElementById("restartBtn").addEventListener("click", restart);
 
 // ─── GitHub Leaderboard ──────────────────────────────────────
 // !! Fill in your details here !!
@@ -342,6 +343,7 @@ async function submitScore(){
     console.error(e);
   }
 }
+document.getElementById("submitNameBtn").addEventListener("click", submitScore);
 
 let currentPlayerTitle = 'Padawan';
 
