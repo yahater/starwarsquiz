@@ -144,7 +144,7 @@ function startGame(){
 
 function loadQuestion(){
   const q = questions[current];
-  document.getElementById('qNumber').textContent = `Frage ${current+1} von ${totalQuestions}`;
+  document.getElementById('qNumber').textContent = `Question ${current+1} of ${totalQuestions}`;
   document.getElementById('qText').textContent = q.q;
   document.getElementById('qCounter').textContent = `${current}/${totalQuestions}`;
   document.getElementById('progressBar').style.width = `${(current/totalQuestions)*100}%`;
