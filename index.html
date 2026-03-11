@@ -53,7 +53,7 @@
     </div>
     <div class="saber-divider"></div>
     <div class="answers-grid" id="answersGrid"></div>
-    <button id="nextBtn" onclick="nextQuestion()">Nächste Frage ›</button>
+    <button id="nextBtn">Nächste Frage ›</button>
   </div>
 
   <div id="endScreen">
@@ -192,6 +192,7 @@ function nextQuestion(){
     loadQuestion();
   }
 }
+document.getElementById("nextBtn").addEventListener("click", nextQuestion);
 
 function showEndScreen(){
   document.getElementById('game').style.display='none';
