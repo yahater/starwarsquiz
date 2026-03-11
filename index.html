@@ -16,15 +16,15 @@
   <div class="crawl-perspective">
     <div class="crawl-content">
       <div class="crawl-episode">Episode I</div>
-      <div class="crawl-title">Das Trivia<br>Erwacht</div>
+      <div class="crawl-title">The Trivia<br>Awakens</div>
       <p class="crawl-text">
-        Eine lange Zeit ist vergangen, seit die Galaxie von dunklen Mächten erschüttert wurde...
+        A long time has passed since the galaxy was shaken by dark forces...
       </p>
       <p class="crawl-text">
-        Nun liegt es an dir, dein Wissen über die Macht zu beweisen. 10 Fragen stehen zwischen dir und dem Titel eines Jedi-Meisters.
+        Now it's up to you to prove your knowledge of the Force. Ten questions stand between you and the title of Jedi Master.
       </p>
       <p class="crawl-text">
-        Möge die Macht mit dir sein, Padawan.
+        May the force be with you, Padawan.
       </p>
     </div>
   </div>
@@ -35,11 +35,11 @@
   <div id="hud">
     <div class="hud-logo">⚡ SW Trivia</div>
     <div class="hud-center">
-      <div class="hud-label">Punkte</div>
+      <div class="hud-label">Score</div>
       <div id="scoreDisplay">0</div>
     </div>
     <div class="hud-progress">
-      <span id="qCounter">0/20</span>
+      <span id="qCounter">0/10</span>
       <div class="progress-bar-outer">
         <div id="progressBar"></div>
       </div>
@@ -48,12 +48,12 @@
 
   <div id="game">
     <div class="question-card">
-      <div class="q-number" id="qNumber">Frage 1 von 20</div>
+      <div class="q-number" id="qNumber">Question 1 of 10</div>
       <div class="q-text" id="qText"></div>
     </div>
     <div class="saber-divider"></div>
     <div class="answers-grid" id="answersGrid"></div>
-    <button id="nextBtn">Nächste Frage ›</button>
+    <button id="nextBtn">Next Question ›</button>
   </div>
 
   <div id="endScreen">
@@ -69,7 +69,7 @@
         <circle cx="50" cy="50" r="4" fill="#050A0F"/>
       </svg>
     </div>
-    <div class="end-rank-label">Dein Rang</div>
+    <div class="end-rank-label">Your Rank</div>
     <div id="finalTitle">Padawan</div>
     <div class="rank-stars" id="rankStars"></div>
     <div class="end-divider"></div>
@@ -77,21 +77,21 @@
 
     <!-- Name input -->
     <div class="name-input-section" id="nameSection">
-      <div class="name-label">Trage dich in die Rangliste ein</div>
+      <div class="name-label">Enter your name in the ranking list</div>
       <div class="name-row">
-        <input type="text" id="nameInput" placeholder="Dein Name" maxlength="20" />
-        <button id="submitNameBtn">Eintragen</button>
+        <input type="text" id="nameInput" placeholder="Your Name" maxlength="20" />
+        <button id="submitNameBtn">Entered!</button>
       </div>
       <div class="submit-status" id="submitStatus"></div>
     </div>
 
     <!-- Leaderboard -->
     <div id="leaderboardSection">
-      <div class="lb-title">— Galaktische Rangliste —</div>
-      <div id="leaderboardBody"><div class="lb-loading">Lade Rangliste...</div></div>
+      <div class="lb-title">— Galactic ranking —</div>
+      <div id="leaderboardBody"><div class="lb-loading">Loading high scores...</div></div>
     </div>
 
-    <button id="restartBtn">Nochmal spielen</button>
+    <button id="restartBtn">Restart</button>
   </div>
 </div>
 
@@ -180,7 +180,7 @@ function selectAnswer(chosen, correct){
 
   document.getElementById('nextBtn').style.display = 'block';
   if(current === totalQuestions - 1){
-    document.getElementById('nextBtn').textContent = 'Ergebnis ansehen ›';
+    document.getElementById('nextBtn').textContent = 'View score ›';
   }
 }
 
@@ -215,7 +215,7 @@ function showEndScreen(){
   currentPlayerTitle = title;
 
   document.getElementById('finalTitle').textContent = title;
-  document.getElementById('finalScore').textContent = `Du hast ${score} von ${totalQuestions} Fragen richtig beantwortet.`;
+  document.getElementById('finalScore').textContent = `You answered ${score} out of ${totalQuestions} questions correctly.`;
 
   // Stars
   const starsEl = document.getElementById('rankStars');
@@ -259,14 +259,14 @@ function renderLeaderboard(entries, highlightName){
   const container = document.getElementById('leaderboardBody');
 
   if(!sorted.length){
-    container.innerHTML = '<div class="lb-loading">Noch keine Einträge.</div>';
+    container.innerHTML = '<div class="lb-loading">No entries yet.</div>';
     return;
   }
 
   const medals = ['🥇','🥈','🥉'];
   let html = `<table class="lb-table">
     <thead><tr>
-      <th>#</th><th>Name</th><th>Rang</th><th>Punkte</th>
+      <th>#</th><th>Name</th><th>Ranking</th><th>Score</th>
     </tr></thead><tbody>`;
 
   sorted.forEach((e, i) => {
@@ -293,10 +293,10 @@ async function submitScore(){
   const status    = document.getElementById('submitStatus');
   const name      = nameInput.value.trim();
 
-  if(!name){ status.textContent = 'Bitte gib einen Namen ein.'; status.className='submit-status error'; return; }
+  if(!name){ status.textContent = 'Please enter name.'; status.className='submit-status error'; return; }
 
   btn.disabled = true;
-  status.textContent = 'Wird gespeichert...';
+  status.textContent = 'Loading...';
   status.className = 'submit-status';
   currentPlayerName = name;
 
@@ -329,7 +329,7 @@ async function submitScore(){
 
     if(!putRes.ok) throw new Error('GitHub API error: ' + putRes.status);
 
-    status.textContent = '✓ Eingetragen!';
+    status.textContent = '✓ Entered!';
     document.getElementById('nameSection').style.opacity = '0.4';
     btn.disabled = true;
     nameInput.disabled = true;
@@ -337,7 +337,7 @@ async function submitScore(){
     renderLeaderboard(entries, name);
 
   } catch(e){
-    status.textContent = 'Fehler beim Speichern. Prüfe Token & Repo.';
+    status.textContent = 'Error saving. Check token & repo.';
     status.className = 'submit-status error';
     btn.disabled = false;
     console.error(e);
