@@ -13,21 +13,24 @@
 
 <!-- Intro Crawl -->
 <div id="intro">
-  <div class="crawl-perspective">
-    <div class="crawl-content">
-      <div class="crawl-episode">Episode I</div>
-      <div class="crawl-title">The Trivia<br>Awakens</div>
-      <p class="crawl-text">
-        A long time has passed since the galaxy was shaken by dark forces...
-      </p>
-      <p class="crawl-text">
-        Now it's up to you to prove your knowledge of the Force. Ten questions stand between you and the title of Jedi Master.
-      </p>
-      <p class="crawl-text">
-        May the force be with you, Padawan.
-      </p>
+  <div class="crawl-scene">
+    <div class="crawl-plane">
+      <div class="crawl-content">
+        <div class="crawl-episode">Episode I</div>
+        <div class="crawl-title">The Trivia<br>Awakens</div>
+        <p class="crawl-text">
+          A long time has passed since the galaxy was shaken by dark forces...
+        </p>
+        <p class="crawl-text">
+          Now it's up to you to prove your knowledge of the Force. Ten questions stand between you and the title of Jedi Master.
+        </p>
+        <p class="crawl-text">
+          May the force be with you, Padawan.
+        </p>
+      </div>
     </div>
   </div>
+  <button id="skipBtn" onclick="startGame()">SKIP INTRO ▶</button>
 </div>
 
 <!-- Main App -->
@@ -141,6 +144,7 @@ function startGame(){
   questions = shuffle(questionDB).slice(0, totalQuestions);
   loadQuestion();
 }
+window.startGame = startGame;
 
 function loadQuestion(){
   const q = questions[current];
@@ -230,7 +234,29 @@ function showEndScreen(){
   fetchLeaderboard().then(entries => renderLeaderboard(entries, null));
 }
 
-function restart(){ location.reload(); }
+function restart(){
+  // Reset state
+  current = 0;
+  score = 0;
+  currentPlayerScore = 0;
+  currentPlayerTitle = 'Padawan';
+
+  // Reset UI
+  document.getElementById('endScreen').style.display = 'none';
+  document.getElementById('scoreDisplay').textContent = '0';
+  document.getElementById('nameInput').value = '';
+  document.getElementById('nameInput').disabled = false;
+  document.getElementById('submitNameBtn').disabled = false;
+  document.getElementById('submitStatus').textContent = '';
+  document.getElementById('nameSection').style.opacity = '1';
+  document.getElementById('game').style.display = 'block';
+
+  // Start fresh without intro
+  questions = shuffle(questionDB).slice(0, totalQuestions);
+  loadQuestion();
+  document.getElementById('app').style.display = 'block';
+}
+
 document.getElementById("restartBtn").addEventListener("click", restart);
 
 // ─── GitHub Leaderboard ──────────────────────────────────────
@@ -348,7 +374,7 @@ document.getElementById("submitNameBtn").addEventListener("click", submitScore);
 let currentPlayerTitle = 'Padawan';
 
 // Auto-start after crawl
-crawlTimeout = setTimeout(startGame, 6000);
+crawlTimeout = setTimeout(startGame, 56000);
 </script>
 </body>
 </html>
