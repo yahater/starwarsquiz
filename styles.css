@@ -49,63 +49,85 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  background: transparent;
   overflow: hidden;
 }
 
-.crawl-perspective {
-  perspective: 300px;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.crawl-content {
+/* The scene: perspective + vanishing point + fade mask */
+.crawl-scene {
   position: absolute;
-  bottom: -100%;
-  width: 60%;
-  text-align: center;
+  inset: 0;
+
+  perspective: 350px;
+  perspective-origin: 50% 35%;
+
+  /* Fade top (far/horizon) to transparent, opaque near bottom */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 20%,
+    black 45%,
+    black 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 20%,
+    black 45%,
+    black 100%
+  );
+}
+
+/* The flat plane: anchored at bottom, tilted away at top */
+.crawl-plane {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
   transform-origin: bottom center;
-  transform: rotateX(25deg);
-  animation: crawl 8s linear forwards;
-  animation-delay: 0.5s;
+  transform: translateX(-50%) rotateX(22deg);
+  width: 46%;
+  padding-bottom: 20vh;
+}
+
+/* The text block that animates upward through the plane */
+.crawl-content {
+  animation: crawl 35s linear forwards;
+  /*animation-delay: 0.3s;*/
 }
 
 @keyframes crawl {
-  0%   { bottom: -100%; }
-  100% { bottom: 200%; }
+  from { transform: translateY(60vh); }
+  to   { transform: translateY(-400%); }
 }
 
 .crawl-episode {
   font-family: 'Orbitron', monospace;
-  font-size: 1rem;
+  font-size: 0.9rem;
   letter-spacing: 6px;
   color: var(--gold);
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   text-transform: uppercase;
+  text-align: center;
 }
 
 .crawl-title {
   font-family: 'Orbitron', monospace;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 900;
   color: var(--gold);
   line-height: 1.2;
   margin-bottom: 2rem;
   text-transform: uppercase;
+  text-align: center;
 }
 
 .crawl-text {
-  font-size: 1.1rem;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 1rem;
   line-height: 1.8;
-  color: #ddd;
-  margin-bottom: 1.5rem;
+  color: var(--gold);
+  margin-bottom: 1.4rem;
+  text-align: justify;
 }
 
 #skipBtn {
@@ -156,6 +178,7 @@ body::after {
   letter-spacing: 3px;
   color: var(--gold);
   text-transform: uppercase;
+  flex: 1;
 }
 
 .hud-center {
@@ -193,6 +216,8 @@ body::after {
 }
 
 .hud-progress {
+  flex: 1;  /* ← add this */
+  justify-content: flex-end;  /* ← add this */
   display: flex;
   align-items: center;
   gap: 10px;
